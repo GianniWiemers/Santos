@@ -1,0 +1,15 @@
+.container {
+    border: solid 10px transparent;
+}
+
+.container:hover {
+    border-color: red;
+}
+
+.selected img {
+    opacity: 0.3;
+}
+
+.player {
+    width: 150px;
+}
