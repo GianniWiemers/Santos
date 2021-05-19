@@ -1,0 +1,24 @@
+.Loading {
+    height: calc(100vh - 70px);
+    width: 100%;
+}
+
+.Loading-icon {
+    height: 50px;
+    pointer-events: none;
+  }
+  
+  @media (prefers-reduced-motion: no-preference) {
+    .Loading-icon {
+      animation: App-logo-spin infinite 2s linear;
+    }
+  }
+
+  @keyframes App-logo-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
