@@ -19,10 +19,53 @@ SESSION_TYPE = 'sqlalchemy'
 Session(app)
 
 rooms_dict = {}  # {key=room_id, (Player1, Player2)}
-players_dict = {} # (key=Player, room_id)
+players_dict = {}  # (key=Player, room_id)
 room_counter = 0
 player_counter = 0
 
+
+@socketio.on('connect')
+def test_connect():
+    print("Connected")
+
+
+# player joins
+# update player counter, room counter
+# add player to room
+# get player ids and create entry in rooms_dict
+@socketio.on('initialize_player')
+def initialize_player():
+    global player_counter
+    global room_counter
+    player_id = request.sid
+    join_room(str(room_counter))
+    players_dict[player_id] = room_counter
+    if player_counter == 0:
+        player_counter += 1
+        rooms_dict[room_counter] = [player_id]
+    elif player_counter == 1:
+        player_counter = 0
+        rooms_dict[room_counter].append(player_id)
+        room_counter += 1
+
+    print("player_counter = " + str(player_counter))
+    print("room_counter = " + str(room_counter))
+    print("rooms_dict = " + str(rooms_dict))
+
+    return Response("Done", 200)
+
+
+# test messaging opponent
+@socketio.on('message_opponent')
+def message_opponent(data):
+    print(data)
+    room_id = players_dict[request.sid]
+    player_id_list = rooms_dict[room_id]
+    opponent_id = player_id_list[0]
+    if player_id_list[1] != request.sid:
+        opponent_id = player_id_list[0]
+    print(room_id)
+    send("Message to opponent in room: " + str(room_id), to=opponent_id)
 
 
 @app.route('/time')
@@ -67,50 +110,6 @@ def on_join(data):
     room = "1"
     join_room(room)
     send('Somebody has entered the room.', to=room)
-
-
-# player joins
-# update player counter, room counter
-# add player to room
-# get player ids and create entry in rooms_dict
-@socketio.on('initialize_player')
-def initialize_player():
-    global player_counter
-    global room_counter
-    player_id = request.sid
-    if player_counter == 0:
-        player_counter = player_counter + 1
-        join_room(str(room_counter))
-        rooms_dict[room_counter] = [player_id]
-        players_dict[player_id] = room_counter
-
-    elif player_counter == 1:
-        player_counter = 0
-        join_room(str(room_counter))
-        rooms_dict[room_counter].append(player_id)
-        players_dict[player_id] = room_counter
-        room_counter = room_counter + 1
-    print("player_counter = " + str(player_counter))
-    print("room_counter = " + str(room_counter))
-    print("rooms_dict = " + str(rooms_dict))
-
-    return Response("Done", 200)
-
-@socketio.on('message_opponent')
-def message_opponent(data):
-    print(data)
-    room_id = players_dict[request.sid]
-    player_id_list = rooms_dict[room_id]
-    opponent_id = ""
-    for i in player_id_list:
-        if i is not request.sid:
-            opponent_id = i
-    print(room_id)
-    send("Hi fella", to=opponent_id)
-
-@socketio.on('connect')
-def test_connect():
-    print("ass")
 
 # @socketio.on('disconnect')
 # def test_disconnect():
