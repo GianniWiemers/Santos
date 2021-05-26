@@ -1,4 +1,5 @@
 import '../css/questionsPage.css'
+import '../css/main.css'
 import Questions from './questions'
 import Images from './images'
 

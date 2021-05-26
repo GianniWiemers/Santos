@@ -2,6 +2,7 @@ import Loading from './components/loading'
 import Header from './components/header'
 import Home from './components/home'
 import QuestionsPage from './components/questionsPage'
+import AnswerPage from './components/answerPage'
 import React from 'react';
 
 class App extends React.Component {
@@ -9,7 +10,7 @@ class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      gameState: 3,
+      gameState: 4,
       date: new Date(),
       timer: 100
     };
@@ -67,6 +68,13 @@ class App extends React.Component {
             <QuestionsPage />
           </div>
         );
+        case 4: 
+          return (
+            <div>
+              <Header enabled="true" timer={this.state.timer}/>
+              <AnswerPage />
+            </div>
+          );
       case 0:
       default:
         return (
