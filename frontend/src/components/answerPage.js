@@ -2,8 +2,8 @@ import '../css/answerPage.css'
 
 const answerPage = (props) => {
     return (
-        <div className="Page Centering">
-            <div className="ImageContainer" style={{backgroundImage: 'url(' + props.image + ')'}}></div>
+        <div className="AnswerPage Centering">
+            <div className="ImageOpponent" style={{backgroundImage: 'url(' + props.image + ')'}}></div>
             <h1>{props.question} {props.word}?</h1>
             <div className="Buttons">
                 <button className="btn">No</button>

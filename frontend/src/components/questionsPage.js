@@ -5,7 +5,7 @@ import Images from './images'
 
 const questionsPage = () => {
     return (
-        <div className="Page Centering">
+        <div className="QuestionsPage Centering">
             <Images />
             <Questions />
         </div>

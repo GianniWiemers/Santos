@@ -1,4 +1,4 @@
-.Page {
+.AnswerPage {
     height: calc(100vh - 70px);
     width: 100%;
     flex-direction: column;
@@ -8,7 +8,7 @@
     flex-direction: row;
 }
 
-.ImageContainer {
+.ImageOpponent {
     position: relative;
     width: calc(30% - 10px);
     margin: 5px 5px;
@@ -17,7 +17,7 @@
     background-size:cover;
 }
 
-.ImageContainer:after {
+.ImageOpponent:after {
     content: "";
     display: block;
     padding-bottom: 100%;

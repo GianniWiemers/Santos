@@ -3,6 +3,7 @@ import Header from './components/header'
 import Home from './components/home'
 import QuestionsPage from './components/questionsPage'
 import AnswerPage from './components/answerPage'
+import EliminationPage from './components/eliminationPage'
 import React from 'react';
 
 class App extends React.Component {
@@ -10,7 +11,7 @@ class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      gameState: 4,
+      gameState: 5,
       date: new Date(),
       timer: 100
     };
@@ -73,6 +74,13 @@ class App extends React.Component {
             <div>
               <Header enabled="true" timer={this.state.timer}/>
               <AnswerPage />
+            </div>
+          );
+        case 5: 
+          return (
+            <div>
+              <Header enabled="true" timer={this.state.timer}/>
+              <EliminationPage />
             </div>
           );
       case 0:
