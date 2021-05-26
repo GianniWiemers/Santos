@@ -4,7 +4,7 @@ import '../css/main.css';
 
 const loading = (props) => {
     return (
-        <div className="Loading centering">
+        <div className="Loading Centering">
             <div>
                 <img src={icon} className="Loading-icon" alt="loading"/>
                 <h1>{props.text}</h1>
