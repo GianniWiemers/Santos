@@ -15,6 +15,17 @@
     background-size:cover;
 }
 
+.Selected {
+    -moz-box-shadow:    inset 0 0 40px #000000;
+    -webkit-box-shadow: inset 0 0 40px #000000;
+    box-shadow:         inset 0 0 40px #000000;
+    opacity: 20%;
+}
+
+.ImageContainer:hover {
+    outline: solid yellow 2px;
+}
+
 .ImageContainer:after {
     content: "";
     display: block;

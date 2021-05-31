@@ -5,16 +5,24 @@ import QuestionsPage from './components/questionsPage'
 import AnswerPage from './components/answerPage'
 import EliminationPage from './components/eliminationPage'
 import GuessPage from './components/guessPage'
-import React from 'react';
+import React from 'react'
+import io from 'socket.io-client'
+
+const socket = io.connect("http://127.0.0.1:5000/")
+
+socket.on('connect', function() {
+  socket.send('I\'m connected!');
+});
 
 class App extends React.Component {
   
   constructor() {
     super();
     this.state = {
-      gameState: 6,
+      gameState: 3,
       date: new Date(),
-      timer: 100
+      timer: 100,
+      loadingMessage: "Searching for another player..."
     };
   }
 
@@ -47,13 +55,18 @@ class App extends React.Component {
     }
   }
 
+  startGame = () => {
+    socket.emit('initialize_player')
+    this.setGameState(1)
+  }
+
   render() {
     switch(this.state.gameState){
       case 1: 
       return (
         <div>
           <Header/>
-          <Loading text="Looking for a game..."/>
+          <Loading text={this.state.loadingMessage}/>
         </div>
       );
       case 2: 
@@ -96,7 +109,7 @@ class App extends React.Component {
         return (
           <div>
             <Header />
-            <Home startButton={() => this.setGameState(1)}/>
+            <Home startButton={this.startGame}/>
           </div>
         );
     }
