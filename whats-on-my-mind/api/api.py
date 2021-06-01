@@ -1,9 +1,11 @@
 import time
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
 from flask_session import Session
-from flask_socketio import SocketIO, send, join_room, leave_room
+from flask_socketio import SocketIO, send, join_room, leave_room, emit
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from Game_session import Game
+from enum import Enum, auto
 
 app = Flask(__name__)
 CORS(app)
@@ -20,8 +22,23 @@ Session(app)
 
 rooms_dict = {}  # {key=room_id, (Player1, Player2)}
 players_dict = {}  # (key=Player, room_id)
+games_dict = {} # key=rooms, value=game
 room_counter = 0
 player_counter = 0
+
+# get questions list
+# question_list = get_database_question_list
+question_list = None
+
+dummy_images_1 = ["a", "b", "c", "d", "e", "f"]
+dummy_guess_image_1 = "1"
+dummy_images_2 = ["1", "2", "3", "4", "5", "6"]
+dummy_guess_image_2 = "b"
+
+ASK = "ASK"
+WAIT_RESPONSE = "WAIT_RESPONSE"
+WAIT_QUESTION = "WAIT_QUESTION"
+RECEIVE_ANSWER = "RECEIVE_ANSWER"
 
 
 @socketio.on('connect')
@@ -46,13 +63,32 @@ def initialize_player():
     elif player_counter == 1:
         player_counter = 0
         rooms_dict[room_counter].append(player_id)
+        games_dict[room_counter] = Game(rooms_dict[0], [1], room_counter)
         room_counter += 1
-
     print("player_counter = " + str(player_counter))
     print("room_counter = " + str(room_counter))
     print("rooms_dict = " + str(rooms_dict))
 
     return Response("Done", 200)
+
+
+def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, player_turn_id, player_waiting_id):
+    dict_player_1 = {'images_set': images_1, 'opponent_image': player_2_answer, 'questions_list': question_list}
+    dict_player_2 = {'images_set': images_2, 'opponent_image': player_1_answer, 'questions_list': question_list}
+    player_1 = rooms_dict[room][0]
+    player_2 = rooms_dict[room][1]
+    emit("send_init_sets", jsonify(dict_player_1), to=player_1)
+    emit("send_init_sets", jsonify(dict_player_2), to=player_2)
+    emit("ask_question", to=player_turn_id)
+    emit("wait", to=player_waiting_id)
+
+# receive question and label
+@socketio.on('receive_question')
+def receive_question():
+    room = players_dict[request.sid]
+    data = request.json
+    game = games_dict[room]
+    game.handle_question(data['question'], data['label'], data['boolean_list'])
 
 
 # test messaging opponent
