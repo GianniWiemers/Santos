@@ -31,17 +31,6 @@ player_counter = 0
 # question_list = get_database_question_list
 question_list = None
 
-dummy_images_1 = ["a", "b", "c", "d", "e", "f"]
-dummy_guess_image_1 = "1"
-dummy_images_2 = ["1", "2", "3", "4", "5", "6"]
-dummy_guess_image_2 = "b"
-
-ASK = "ASK"
-WAIT_RESPONSE = "WAIT_RESPONSE"
-WAIT_QUESTION = "WAIT_QUESTION"
-RECEIVE_ANSWER = "RECEIVE_ANSWER"
-
-
 @socketio.on('connect')
 def test_connect():
     print("Connected")
@@ -102,19 +91,6 @@ def receive_answer():
     if game.handle_answer(request.sid, data['answer']):
         emit("ask_question", to=game.turn.id)
         emit("wait", to=game.waiting.id)
-
-
-# test messaging opponent
-@socketio.on('message_opponent')
-def message_opponent(data):
-    print(data)
-    room_id = players_dict[request.sid]
-    player_id_list = rooms_dict[room_id]
-    opponent_id = player_id_list[0]
-    if player_id_list[1] != request.sid:
-        opponent_id = player_id_list[0]
-    print(room_id)
-    send("Message to opponent in room: " + str(room_id), to=opponent_id)
 
 @socketio.on('send_guess')
 def receive_guess():

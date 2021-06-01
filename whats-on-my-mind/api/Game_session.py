@@ -69,14 +69,7 @@ class Player:
         self.selection_list = selection_list
 
     def guess_image(self, guess):
-
         return self.image_id_list[guess] == self.image_answer_id
-
-    # def ask_question(self, question_id, label):
-    #     for i in range(len(self.image_id_list)):
-    #         if self.selection_list[i]:
-    #             # insert labels
-    #             insert_label(s)
 
     def update_question(self, question_id):
         self.prev_question_id = question_id
