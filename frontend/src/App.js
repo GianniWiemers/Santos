@@ -5,116 +5,120 @@ import QuestionsPage from './components/questionsPage'
 import AnswerPage from './components/answerPage'
 import EliminationPage from './components/eliminationPage'
 import GuessPage from './components/guessPage'
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client'
 
 const socket = io.connect("http://127.0.0.1:5000/")
 
-socket.on('connect', function() {
-  socket.send('I\'m connected!');
-  console.log("jatochhh")
-});
-
-class App extends React.Component {
+const App = (prosp) => {
   
-  constructor() {
-    super();
-    this.state = {
-      gameState: 3,
-      date: new Date(),
-      timer: 100,
-      loadingMessage: "Searching for another player..."
-    };
-  }
+  const [gameState, setgameState] = useState(0);
+  const [date, setdate] = useState(new Date());
+  const [timer, settimer] = useState(100);
+  const [images, setimages] = useState([]);
+  const [selection, setselection] = useState([]);
+  const [oppimg, setoppimg] = useState();
+  const [loadingMessage, setloadingMessage] = useState("Searching for another player")
 
-  setGameState = (state) => {
-    clearInterval(this.round);
-    clearInterval(this.timeLeft);
+  useEffect(() => {
+    socket.on('game_found', data => {
+      setimages(data.imgs)
+      setoppimg(data.oppImg)
+      if(data.first === 0) {
+        setgameState(2)
+      } else {
+        setgameState(3)
+      }
+    });
+    socket.on('next_round', data => {
+      setgameState(data.nextRound)
+    });
+  }, []);
+
+  const setGameState = (state) => {
     switch(state) {
       case 1:
-        this.setState({gameState: 1, date: new Date()});
-        this.round = setInterval(
-          () => this.setGameState(2),
-          5000
-        );
+        setgameState(2)
+        setdate(new Date())
         break;
       case 2:
-        this.setState({gameState: 2, date: new Date(), timer: 100});
-        this.round = setInterval(
-          () => this.setGameState(0),
+        setgameState(2);
+        settimer(100);
+        setdate(new Date());
+        const round = setInterval(
+          () => setGameState(0),
           10000
         );
-        this.timeLeft = setInterval(
-          () => this.setState({timer: this.state.timer-0.1}),
+        const timeLeft = setInterval(
+          () => settimer(timer-0.1),
           10
         );
         break;
       case 0:
       default:
-        this.setState({gameState: 0});
+        setgameState(0);
         break;
     }
   }
 
-  startGame = () => {
+  const startGame = () => {
     socket.emit('initialize_player')
-    this.setGameState(1)
+    setGameState(1)
   }
 
-  render() {
-    switch(this.state.gameState){
-      case 1: 
+  
+  switch(gameState){
+    case 1: 
+    return (
+      <div>
+        <Header/>
+        <Loading text={loadingMessage}/>
+      </div>
+    );
+    case 2: 
       return (
         <div>
-          <Header/>
-          <Loading text={this.state.loadingMessage}/>
+          <Header enabled="true" timer={timer}/>
+          <Loading text="Opponents turn, please wait."/>
         </div>
       );
-      case 2: 
+    case 3: 
+      return (
+        <div>
+          <Header enabled="true" timer={timer}/>
+          <QuestionsPage />
+        </div>
+      );
+      case 4: 
         return (
           <div>
-            <Header enabled="true" timer={this.state.timer}/>
-            <Loading text="Opponents turn, please wait."/>
+            <Header enabled="true" timer={timer}/>
+            <AnswerPage />
           </div>
         );
-      case 3: 
+      case 5: 
         return (
           <div>
-            <Header enabled="true" timer={this.state.timer}/>
-            <QuestionsPage />
+            <Header enabled="true" timer={timer}/>
+            <EliminationPage />
           </div>
         );
-        case 4: 
+        case 6: 
           return (
             <div>
-              <Header enabled="true" timer={this.state.timer}/>
-              <AnswerPage />
+              <Header enabled="true" timer={timer}/>
+              <GuessPage />
             </div>
           );
-        case 5: 
-          return (
-            <div>
-              <Header enabled="true" timer={this.state.timer}/>
-              <EliminationPage />
-            </div>
-          );
-          case 6: 
-            return (
-              <div>
-                <Header enabled="true" timer={this.state.timer}/>
-                <GuessPage />
-              </div>
-            );
-      case 0:
-      default:
-        return (
-          <div>
-            <Header />
-            <Home startButton={this.startGame}/>
-          </div>
-        );
-    }
+    case 0:
+    default:
+      return (
+        <div>
+          <Header />
+          <Home startButton={startGame}/>
+        </div>
+      );
   }
 }
 
-export default App;
+export default App
