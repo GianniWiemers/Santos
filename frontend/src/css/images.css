@@ -23,7 +23,7 @@
 }
 
 .ImageContainer:hover {
-    outline: solid yellow 2px;
+    outline: solid yellow 5px;
 }
 
 .ImageContainer:after {

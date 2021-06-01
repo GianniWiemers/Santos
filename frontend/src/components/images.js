@@ -11,7 +11,7 @@ const images = () => {
     var imgs = []
     for(var i = 0; i < 20; i++) {
         var extraClass = ""
-        if(imageList[0].selected) {
+        if(!imageList[0].selected) {
             extraClass = "Selected"
         }
         imgs.push(<div className={"ImageContainer " + extraClass} style={{backgroundImage: 'url(' + imageList[0].url + ')'}}></div>)
