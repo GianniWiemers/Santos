@@ -1,3 +1,4 @@
+import json
 import time
 from flask import Flask, request, Response, jsonify
 from flask_session import Session
@@ -83,12 +84,24 @@ def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, p
     emit("wait", to=player_waiting_id)
 
 # receive question and label
-@socketio.on('receive_question')
+@socketio.on('send_question')
 def receive_question():
     room = players_dict[request.sid]
     data = request.json
     game = games_dict[room]
-    game.handle_question(data['question'], data['label'], data['boolean_list'])
+    if game.handle_question(request.sid, data['question_id'], data['label'], data['boolean_list']):
+        question_json = {"question_id": data['question_id'], "label": data['label']}
+        emit("wait", to=game.turn)
+        emit("answer_question", json.dumps(question_json, indent=4), to=game.waiting)
+
+@socketio.on('send_answer')
+def receive_answer():
+    room = players_dict[request.sid]
+    data = request.json
+    game = games_dict[room]
+    if game.handle_answer(request.sid, data['answer']):
+        emit("ask_question", to=game.turn.id)
+        emit("wait", to=game.waiting.id)
 
 
 # test messaging opponent
@@ -103,49 +116,21 @@ def message_opponent(data):
     print(room_id)
     send("Message to opponent in room: " + str(room_id), to=opponent_id)
 
+@socketio.on('send_guess')
+def receive_guess():
+    room = players_dict[request.sid]
+    data = request.json
+    game = games_dict[room]
+    if game.handle_guess(request.sid, data['guess']):
+        emit("win", to=game.turn)
+        emit("lose", to=game.waiting)
+    else:
+        emit("ask_question", to=game.turn.id)
+        emit("wait", to=game.waiting.id)
 
 @app.route('/time')
 def get_current_time():
     return {'time': time.time()}
-
-
-@app.route('/findsession')
-def find_session():
-    pass
-
-
-@app.route('/askquestion')
-def ask_question():
-    pass
-
-
-@app.route('/sendresponse')
-def send_question_response():
-    pass
-
-
-@app.route('/eliminate')
-def update_image_tags():
-    pass
-
-
-@app.route('/guessimage')
-def guess_image():
-    pass
-
-
-@socketio.on('message')
-def handle_message(data):
-    print(data)
-    send(data, broadcast=True)
-
-
-@socketio.on('join')
-def on_join(data):
-    print(request.sid)
-    room = "1"
-    join_room(room)
-    send('Somebody has entered the room.', to=room)
 
 # @socketio.on('disconnect')
 # def test_disconnect():
