@@ -91,22 +91,36 @@ def create(database_name):
 
 
 def create_image_set_session(conn):
-    image_query = """SELECT * FROM images ORDER BY RANDOM() LIMIT 20"""
+    image_query = """SELECT * FROM images ORDER BY RANDOM() LIMIT 40"""
     cur = conn.cursor()
     cur.execute(image_query)
 
-    # Contains 20 random images (no duplicates)
+    # Contains 40 random images (no duplicates)
     record = cur.fetchall()
 
     cur.close()
 
-    # Contains 2 images from the 20 images that should be the ones to guess
-    images = random.sample(record, 2)
+    middle = len(record) // 2
+    image_set_p1 = record[:middle]
+    image_set_p2 = record[middle:]
 
-    image_player1 = images[0]
-    image_player2 = images[1]
+    image_player1 = random.sample(image_set_p2, 1)[0]
+    image_player2 = random.sample(image_set_p1, 1)[0]
 
-    return record, image_player1, image_player2
+    return image_set_p1, image_set_p2, image_player1, image_player2
+
+
+def get_questions(conn):
+    question_query = """SELECT * FROM questions"""
+    cur = conn.cursor()
+    cur.execute(question_query)
+
+    # Contains all questions
+    questions = cur.fetchall()
+
+    cur.close()
+
+    return questions
 
 
 # Writes blob image to disk (for debugging?)
