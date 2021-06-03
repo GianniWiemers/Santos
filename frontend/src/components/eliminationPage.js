@@ -10,14 +10,9 @@ const eliminationPage = (props) => {
                 <h2>{props.question}</h2>
                 <h3>{props.answer}</h3>
             </div>
-            <Images />
+            <Images images={props.images} selection={props.selection} guessImage={props.guessImage} onclick={props.onclick}/>
         </div>
     )
-}
-
-eliminationPage.defaultProps = {
-    question: "I asked this question",
-    answer: "answer of opponent"
 }
 
 export default eliminationPage

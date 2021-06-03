@@ -1,26 +1,29 @@
 import '../css/images.css'
 import '../css/main.css';
 
-const imageList = [
-    {url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png',
-    id: 0,
-    selected: true}
-]
+const images = (props) => {
 
-const images = () => {
     var imgs = []
-    for(var i = 0; i < 20; i++) {
+    for(var i = 0; i < props.images.length; i++) {
         var extraClass = ""
-        if(!imageList[0].selected) {
+        if(!props.selection[i] && !props.guess) {
             extraClass = "Selected"
+        } else if(props.guessImage[i] && props.guess) {
+            extraClass = "Guess"
         }
-        imgs.push(<div className={"ImageContainer " + extraClass} style={{backgroundImage: 'url(' + imageList[0].url + ')'}}></div>)
+        const index = i;
+        imgs.push(<div onClick={() => props.onclick(index)} className={"ImageContainer " + extraClass} style={{backgroundImage: 'url(' + props.images[0] + ')'}}></div>)
     }
     return (
         <div className="Images Centering">
             {imgs}
         </div>
     )
+}
+
+images.defaultProps = {
+    onclick: () => {},
+    guess: false
 }
 
 export default images
