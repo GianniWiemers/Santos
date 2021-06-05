@@ -12,7 +12,7 @@ const socket = io.connect("http://127.0.0.1:5000/")
 
 const App = (prosp) => {
   
-  const [gameState, setgameState] = useState(6);
+  const [gameState, setgameState] = useState(0);
   const [timer, settimer] = useState(100);
   const [images, setimages] = useState(['https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png']);
   const [questions, setquestions] = useState([]);
@@ -59,7 +59,8 @@ const App = (prosp) => {
       countdown = setTimeout(updateTimer, 10)
     }
     socket.on('send_init_sets', data => {
-      setimages(data.images_set)
+      data = JSON.parse(data)
+      setimages(data['images_set'])
       var selectionInit = []
       var guessImageInit = []
       for(var i = 0; i < data.images_set.length; i++) {
@@ -94,6 +95,7 @@ const App = (prosp) => {
   }, [questions, updateTimer, timedState]);
 
   function startGame() {
+    console.log("start game")
     socket.emit('initialize_player')
     setgameState(2)
     settimedState(true)

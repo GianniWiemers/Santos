@@ -1,3 +1,4 @@
+import base64
 import json
 import time
 from flask import Flask, request, Response, jsonify
@@ -25,7 +26,7 @@ room_counter = 0
 player_counter = 0
 
 # get questions list
-connection = db.create_connection("whats-on-my-mind/api/images.db")
+connection = db.create_connection("images.db")
 question_list = db.get_questions(connection)
 connection.close()
 
@@ -41,6 +42,7 @@ def test_connect():
 # get player ids and create entry in rooms_dict
 @socketio.on('initialize_player')
 def initialize_player():
+    print("joined")
     global player_counter
     global room_counter
     player_id = request.sid
@@ -62,12 +64,17 @@ def initialize_player():
 
 
 def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, player_turn_id, player_waiting_id):
-    dict_player_1 = {'images_set': images_1, 'opponent_image': player_2_answer, 'questions_list': question_list}
-    dict_player_2 = {'images_set': images_2, 'opponent_image': player_1_answer, 'questions_list': question_list}
+    dict_player_1 = {'images_set': [base64.b64encode(x).decode("utf-8") for x in images_1],
+                     'opponent_image': base64.b64encode(player_2_answer).decode("utf-8"),
+                     'questions_list': [x[1] for x in question_list]}
+    dict_player_2 = {'images_set': [base64.b64encode(x).decode("utf-8") for x in images_2],
+                     'opponent_image': base64.b64encode(player_1_answer).decode("utf-8"),
+                     'questions_list': [x[1] for x in question_list]}
     player_1 = rooms_dict[room][0]
     player_2 = rooms_dict[room][1]
-    emit("send_init_sets", jsonify(dict_player_1), to=player_1)
-    emit("send_init_sets", jsonify(dict_player_2), to=player_2)
+    print(type(dict_player_1['images_set'][0]))
+    emit("send_init_sets", json.dumps(dict_player_1, indent=4), to=player_1)
+    emit("send_init_sets", json.dumps(dict_player_2, indent=4), to=player_2)
     emit("ask_question", to=player_turn_id)
     emit("wait", to=player_waiting_id)
 

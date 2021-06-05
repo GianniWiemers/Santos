@@ -5,7 +5,7 @@ import random
 def create_connection(name_db):
     conn = None
     try:
-        conn = sqlite3.connect(name_db)
+        conn = sqlite3.connect(name_db, check_same_thread=False)
     except sqlite3.Error as er:
         print(er)
 
