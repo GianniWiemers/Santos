@@ -30,7 +30,7 @@ def create_image(conn, image):
     return cur.lastrowid
 
 
-def create_session(conn, session):
+def create_annotation(conn, session):
     sql = ''' INSERT INTO sessions(session_id, image_id, question_id, label) VALUES (?, ?, ?, ?) '''
 
     cur = conn.cursor()

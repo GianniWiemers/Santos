@@ -6,6 +6,7 @@ from flask_socketio import SocketIO, send, join_room, leave_room, emit
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from Game_session import Game
+import database as db
 from enum import Enum, auto
 
 app = Flask(__name__)
@@ -14,8 +15,6 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.config.from_object('config')
 
-db = SQLAlchemy(app)
-
 # this sets the flask session easily
 # to access session variables import session from flask
 SESSION_TYPE = 'sqlalchemy'
@@ -23,13 +22,15 @@ Session(app)
 
 rooms_dict = {}  # {key=room_id, (Player1, Player2)}
 players_dict = {}  # (key=Player, room_id)
-games_dict = {} # key=rooms, value=game
+games_dict = {}  # key=rooms, value=game
 room_counter = 0
 player_counter = 0
 
 # get questions list
-# question_list = get_database_question_list
-question_list = None
+connection = db.create_connection("whats-on-my-mind/api/images.db")
+question_list = db.get_questions(connection)
+connection.close()
+
 
 @socketio.on('connect')
 def test_connect():
@@ -53,7 +54,7 @@ def initialize_player():
     elif player_counter == 1:
         player_counter = 0
         rooms_dict[room_counter].append(player_id)
-        games_dict[room_counter] = Game(rooms_dict[0], [1], room_counter)
+        games_dict[room_counter] = Game(rooms_dict[room_counter][0], rooms_dict[room_counter][1], room_counter)
         room_counter += 1
     print("player_counter = " + str(player_counter))
     print("room_counter = " + str(room_counter))
@@ -72,16 +73,18 @@ def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, p
     emit("ask_question", to=player_turn_id)
     emit("wait", to=player_waiting_id)
 
+
 # receive question and label
 @socketio.on('send_question')
 def receive_question():
     room = players_dict[request.sid]
-    data = request.json
+    data = request.json #possible bug
     game = games_dict[room]
-    if game.handle_question(request.sid, data['question_id'], data['label'], data['boolean_list']):
+    if game.handle_question(request.sid, question_list[data['question_id']][0], data['label'], data['boolean_list']):
         question_json = {"question_id": data['question_id'], "label": data['label']}
         emit("wait", to=game.turn)
-        emit("answer_question", json.dumps(question_json, indent=4), to=game.waiting)
+        emit("answer_question", json.dumps(question_json, indent=4), to=game.waiting) #check dumps
+
 
 @socketio.on('send_answer')
 def receive_answer():
@@ -91,6 +94,7 @@ def receive_answer():
     if game.handle_answer(request.sid, data['answer']):
         emit("ask_question", to=game.turn.id)
         emit("wait", to=game.waiting.id)
+
 
 @socketio.on('send_guess')
 def receive_guess():
@@ -103,6 +107,7 @@ def receive_guess():
     else:
         emit("ask_question", to=game.turn.id)
         emit("wait", to=game.waiting.id)
+
 
 @app.route('/time')
 def get_current_time():
