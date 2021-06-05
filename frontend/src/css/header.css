@@ -1,0 +1,28 @@
+.Header {
+    width: 100%;
+    height: 70px;
+    background-color: grey;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    text-align: center;
+}
+
+.Logo {
+    width: 200px;
+    max-height: 100%;
+}
+
+.Timer {
+    border-radius: 10px;
+    background-color: red;
+    height: 35px;
+    margin-right: 50px;
+    width: calc(100% - 400px);
+}
+
+.Timeleft {
+    height: 100%;
+    border-radius: 10px;
+    background-color: green;
+}

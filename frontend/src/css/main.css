@@ -1,0 +1,16 @@
+.Centering {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    text-align: center;
+}
+
+.btn {
+    background-color: grey;
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 15px;
+    margin: 5px 5px;
+}
