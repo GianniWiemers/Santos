@@ -4,10 +4,8 @@ from flask import Flask, request, Response, jsonify
 from flask_session import Session
 from flask_socketio import SocketIO, send, join_room, leave_room, emit
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from Game_session import Game
 import database as db
-from enum import Enum, auto
 
 app = Flask(__name__)
 CORS(app)
