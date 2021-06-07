@@ -1,22 +1,26 @@
 import '../css/questions.css'
 import '../css/main.css';
 
-const questions = () => {
+const questions = (props) => {
+    var options = []
+    for(var i = 0; i < props.questions.length; i++) {
+        const x = i;
+        options.push(<option value={x}>{props.questions[i]}</option>)
+    }
+
     return (
         <div className="Questions Centering">
             <div>
-                <select>
-                    <option value="0">Does the image contain ...?</option>
-                    <option value="1">Is the image related to ...?</option>
-                    <option value="2">Can the image be used for ...?</option>
+                <select id="questionSelect">
+                    {options}
                 </select>
             </div>
             <div>
-                <textarea rows="1"></textarea>
+                <textarea id="areaText" rows="1"></textarea>
             </div>
             <div className="Buttons">
-                <button className="btn">Ask</button>
-                <button className="btn">Guess</button>
+                <button onClick={() => props.askButton(document.getElementById("questionSelect").value, document.getElementById("areaText").value)} className="btn">Ask</button>
+                <button onClick={props.toGuess} className="btn">Guess</button>
             </div>
         </div>
     )

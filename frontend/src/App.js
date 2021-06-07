@@ -13,11 +13,15 @@ const socket = io.connect("http://127.0.0.1:5000/")
 const App = (prosp) => {
   
   const [gameState, setgameState] = useState(6);
+  const [toSend, settoSend] = useState("wait");
   const [timer, settimer] = useState(100);
-  const [images, setimages] = useState(['https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png']);
+  const [images, setimages] = useState([]);
   const [questions, setquestions] = useState([]);
-  const [selection, setselection] = useState([true, true]);
-  const [guessImage, setguessImage] = useState([false, false]);
+  const [selection, setselection] = useState([]);
+  const [guessImage, setguessImage] = useState([]);
+  const [answer, setanswer] = useState(0);
+  const [questionId, setquestionId] = useState(0);
+  const [textLabel, settextLabel] = useState("");
   const [oppQuestion, setoppQuestion] = useState("no opponent question");
   const [oppimg, setoppimg] = useState('https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/488px-No-Image-Placeholder.svg.png');
   const [loadingMessage, setloadingMessage] = useState("Searching for another player...")
@@ -26,6 +30,7 @@ const App = (prosp) => {
   function updateTimer() {
     if(timer <= 0) {
       emitToSocket();
+      setloadingMessage("Waiting for server...")
       setgameState(1);
       settimer(100);
       settimedState(false);
@@ -34,18 +39,50 @@ const App = (prosp) => {
     }
   }
 
+  function askQuestion(question, textArea) {
+    setloadingMessage("Waiting for opponent...")
+    setgameState(1)
+    setquestionId(question)
+    settextLabel(textArea)
+  }
+
+  function toGuessPage(toPage) {
+    if(toPage === true) {
+      setgameState(6)
+    } else {
+      setgameState(3)
+    }
+  }
+
+  function guessTheImage() {
+    setloadingMessage("Waiting for opponent...")
+    setgameState(1)
+    settoSend("send_guess")
+  }
+
+  function answerQuestion(answerId) {
+    console.log(answerId)
+    setloadingMessage("Waiting for opponent...")
+    setgameState(1)
+    setanswer(answerId)
+  }
+
   function emitToSocket() {
-    switch(gameState) {
-      case 3:
-        const questionJSON = JSON.stringify({question_id: 0, label: "", boolean_list: selection})
+    switch(toSend) {
+      case "send_question":
+        const questionJSON = JSON.stringify({question_id: questionId, label: textLabel, boolean_list: selection})
         socket.emit('send_question', questionJSON);
         break;
-      case 4:
-        const answerJSON = JSON.stringify({answer: 0})
+      case "send_answer":
+        const answerJSON = JSON.stringify({answer: answer})
         socket.emit('send_answer', answerJSON)
         break;
-      case 8:
-        const guessJSON = JSON.stringify({guess: 0})
+      case "send_guess":
+        var index = 0;
+        if(guessImage.findIndex(true) !== undefined) {
+          index = guessImage.findIndex(true);
+        }
+        const guessJSON = JSON.stringify({guess: index})
         socket.emit('send_guess', guessJSON)
         break;
       default:
@@ -74,13 +111,19 @@ const App = (prosp) => {
     });
     socket.on('ask_question', function() {
       setgameState(3)
+      settimedState(true)
+      settoSend("send_question")
     });
     socket.on('wait', function() {
       setgameState(5)
+      settimedState(true)
+      settoSend("wait")
     });
     socket.on('answer_question', data => {
       setoppQuestion(questions[data.question_id] + data.label)
       setgameState(4)
+      settimedState(true)
+      settoSend("send_answer")
     });
     socket.on('win', function() {
       console.log("Make win screen");
@@ -95,8 +138,7 @@ const App = (prosp) => {
 
   function startGame() {
     socket.emit('initialize_player')
-    setgameState(2)
-    settimedState(true)
+    setgameState(1)
   }
 
   function chooseImage(id) {
@@ -148,30 +190,30 @@ const App = (prosp) => {
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <QuestionsPage images={images} selection={selection} guessImage={guessImage}/>
+          <QuestionsPage questions={questions} images={images} selection={selection} guessImage={guessImage} askButton={askQuestion} toGuess={() => toGuessPage(true)}/>
         </div>
       );
-      case 4: 
-        return (
-          <div>
-            <Header enabled="true" timer={timer}/>
-            <AnswerPage source={oppimg} question={oppQuestion}/>
-          </div>
-        );
-      case 5: 
-        return (
-          <div>
-            <Header enabled="true" timer={timer}/>
-            <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage}/>
-          </div>
-        );
-        case 6: 
-          return (
-            <div>
-              <Header enabled="true" timer={timer}/>
-              <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage}/>
-            </div>
-          );
+    case 4: 
+      return (
+        <div>
+          <Header enabled="true" timer={timer}/>
+          <AnswerPage source={oppimg} question={oppQuestion} answer={answerQuestion}/>
+        </div>
+      );
+    case 5: 
+      return (
+        <div>
+          <Header enabled="true" timer={timer}/>
+          <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage}/>
+        </div>
+      );
+    case 6: 
+      return (
+        <div>
+          <Header enabled="true" timer={timer}/>
+          <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage} toQuestion={() => toGuessPage(false)} guessImage={guessTheImage}/>
+        </div>
+      );
     case 0:
     default:
       return (
