@@ -1,0 +1,24 @@
+.AnswerPage {
+    height: calc(100vh - 70px);
+    width: 100%;
+    flex-direction: column;
+}
+
+.Buttons {
+    flex-direction: row;
+}
+
+.ImageOpponent {
+    position: relative;
+    width: calc(30% - 10px);
+    margin: 5px 5px;
+    background-position:center center;
+    background-repeat:no-repeat;
+    background-size:cover;
+}
+
+.ImageOpponent:after {
+    content: "";
+    display: block;
+    padding-bottom: 100%;
+}

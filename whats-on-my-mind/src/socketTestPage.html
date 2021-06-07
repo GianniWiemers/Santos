@@ -1,0 +1,23 @@
+<button type="button" id="b0">Connect</button>
+<button type="button" id="b1">Click Me!</button>
+<button type="button" id="b2">Click Me!</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io("http://127.0.0.1:5000/");
+    document.getElementById("b0").addEventListener("click", function() {
+        socket.emit('initialize_player')
+    });
+    socket.on('connect', function() {
+        socket.send('I\'m connected!');
+    });
+    socket.on('message', data => {
+        console.log(`${data}`)
+    });
+    document.getElementById("b1").addEventListener("click", function() {
+      socket.emit("message_opponent", "howdy")
+    });
+    document.getElementById("b2").addEventListener("click", function() {
+      socket.emit("join", "2")
+    });
+</script>
