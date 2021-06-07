@@ -79,9 +79,13 @@ const App = () => {
         break;
       case "send_guess":
         var index = 0;
-        if(guessImage.findIndex(true) !== undefined) {
-          index = guessImage.findIndex(true);
+        for(var i = 0; i < guessImage.length; i++) {
+          if(guessImage[i]) {
+            index = i;
+            break;
+          }
         }
+        console.log(index)
         const guessJSON = JSON.stringify({guess: index})
         socket.emit('send_guess', guessJSON)
         break;
