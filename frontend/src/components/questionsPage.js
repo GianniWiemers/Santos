@@ -7,7 +7,7 @@ const questionsPage = (props) => {
     return (
         <div className="QuestionsPage Centering">
             <Images images={props.images} selection={props.selection} guessImage={props.guessImage}/>
-            <Questions />
+            <Questions askButton={props.askButton} toGuess={props.toGuess} questions={props.questions}/>
         </div>
     )
 }

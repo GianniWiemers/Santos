@@ -1,8 +1,11 @@
-const imageSubmission = () => {
+const imageSubmission = (props) => {
     return (
         <div className="Questions Centering">
             <h1>Please select the desired image</h1>
-            <button className="btn">Guess</button>
+            <div className="ButtonContainer">
+                <button onClick={props.toQuestion} className="btn">Back</button>
+                <button onClick={props.guessImage} className="btn">Guess</button>
+            </div>
         </div>
     )
 }
