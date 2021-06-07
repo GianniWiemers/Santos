@@ -42,6 +42,7 @@ const App = () => {
 
   function askQuestion(question, textArea) {
     setloadingMessage("Waiting for opponent...")
+    console.log("ask")
     setgameState(1)
     setquestionId(question)
     settextLabel(textArea)
@@ -75,6 +76,8 @@ const App = () => {
         break;
       case "send_answer":
         const answerJSON = JSON.stringify({answer: answer})
+          console.log(answer)
+          console.log("answer sent")
         socket.emit('send_answer', answerJSON)
         break;
       case "send_guess":
@@ -100,6 +103,7 @@ const App = () => {
       countdown = setTimeout(updateTimer, 10)
     }
     socket.on('send_init_sets', data => {
+      settimer(100);
       data = JSON.parse(data)
       setimages(data['images_set'])
       var selectionInit = []
@@ -115,16 +119,20 @@ const App = () => {
       setloadingMessage("Waiting for server...")
     });
     socket.on('ask_question', function() {
+      settimer(100);
       setgameState(3)
       settimedState(true)
       settoSend("send_question")
     });
     socket.on('wait', function() {
+      settimer(100);
       setgameState(5)
       settimedState(true)
       settoSend("wait")
     });
     socket.on('answer_question', data => {
+      settimer(100);
+      data = JSON.parse(data)
       setoppQuestion(questions[data.question_id] + data.label)
       setgameState(4)
       settimedState(true)
