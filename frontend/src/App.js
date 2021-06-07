@@ -10,7 +10,7 @@ import io from 'socket.io-client'
 
 const socket = io.connect("http://127.0.0.1:5000/")
 
-const App = (prosp) => {
+const App = () => {
   
   const [gameState, setgameState] = useState(6);
   const [toSend, settoSend] = useState("wait");
@@ -61,7 +61,6 @@ const App = (prosp) => {
   }
 
   function answerQuestion(answerId) {
-    console.log(answerId)
     setloadingMessage("Waiting for opponent...")
     setgameState(1)
     setanswer(answerId)
@@ -211,7 +210,7 @@ const App = (prosp) => {
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage} toQuestion={() => toGuessPage(false)} guessImage={guessTheImage}/>
+          <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage} toQuestion={() => toGuessPage(false)} guessTheImage={guessTheImage}/>
         </div>
       );
     case 0:
