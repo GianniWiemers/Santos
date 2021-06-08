@@ -31,7 +31,7 @@ def create_image(conn, image):
 
 
 def create_annotation(conn, session):
-    sql = ''' INSERT INTO sessions(session_id, image_id, question_id, label) VALUES (?, ?, ?, ?) '''
+    sql = ''' INSERT OR REPLACE INTO sessions(session_id, image_id, question_id, label) VALUES (?, ?, ?, ?) '''
 
     cur = conn.cursor()
     cur.execute(sql, session)

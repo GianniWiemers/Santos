@@ -92,7 +92,6 @@ def receive_question(x):
 
 @socketio.on('send_answer')
 def receive_answer(x):
-    print("answer received")
     data = json.loads(x)
     room = players_dict[request.sid]
     game = games_dict[room]
