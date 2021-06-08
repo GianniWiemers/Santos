@@ -27,13 +27,25 @@ class Game:
 
     # Handle a question, method is called whenever a question is sent trough the api
     def handle_question(self, requester, new_question_id, label, boolean_list):
+        print("handle_question")
         if requester == self.turn.id:
+            print("check 1")
+            print(self.turn.prev_answer)
+            print(type(self.turn.prev_answer))
             self.turn.update_selection_list(boolean_list)
-            if not self.turn.selection_list:
-                for i in range(len(requester.image_id_list)):
-                    if requester.selection_list[i]:
+            if self.turn.selection_list and self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
+                print("check 2")
+                for i in range(len(self.turn.image_list)):
+                    print("check 3")
+                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and self.turn.prev_label.strip() is not '':
+                        print("check 4")
                         # Write annotation to db
-                        db.create_annotation(connection, (self.session_id, requester.image_id_list[i][0], requester.prev_question_id, requester.prev_label))
+                        print("session_id: " + str(self.session_id))
+                        print("image_id: " + str(self.turn.image_list[i][0]))
+                        print("question_id: " + str(self.turn.prev_question_id))
+                        print("label: " + str(self.turn.prev_label))
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
             self.waiting.prev_question_id = new_question_id
             self.waiting.prev_label = label
             return True
