@@ -30,19 +30,23 @@ const App = () => {
 
   function updateTimer() {
     if(timer <= 0) {
-      emitToSocket();
-      setloadingMessage("Waiting for server...")
-      setgameState(1);
-      settimer(100);
-      settimedState(false);
+      roundDone()
     } else {
       settimer(timer - 0.1)
     }
   }
 
+  function roundDone() {
+    console.log("round done")
+    emitToSocket();
+    setloadingMessage("Waiting for server...")
+    setgameState(1);
+    settimer(100);
+    settimedState(false);
+  }
+
   function askQuestion(question, textArea) {
     setloadingMessage("Waiting for opponent...")
-    console.log("ask")
     setgameState(1)
     setquestionId(question)
     settextLabel(textArea)
@@ -98,9 +102,11 @@ const App = () => {
   }
 
   useEffect(() => {
+    var round;
     var countdown;
     if(timedState) {
       countdown = setTimeout(updateTimer, 10)
+      round = setTimeout(roundDone, 1000)
     }
     socket.on('send_init_sets', data => {
       settimer(100);
@@ -146,13 +152,15 @@ const App = () => {
     });
     return function cleanUp() {
       clearTimeout(countdown);
+      clearTimeout(round);
     }
-  }, [questions, updateTimer, timedState]);
+  }, [questions, updateTimer, roundDone, timedState]);
 
   function startGame() {
     console.log("start game")
     socket.emit('initialize_player')
-    setgameState(1)
+    setgameState(3)
+    settimedState(true)
   }
 
   function chooseImage(id) {
