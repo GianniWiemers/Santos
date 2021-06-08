@@ -63,11 +63,11 @@ def initialize_player():
 
 
 def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, player_turn_id, player_waiting_id):
-    dict_player_1 = {'images_set': [base64.b64encode(x).decode("utf-8") for x in images_1],
-                     'opponent_image': base64.b64encode(player_2_answer).decode("utf-8"),
+    dict_player_1 = {'images_set': [base64.b64encode(x) for x in images_1],
+                     'opponent_image': base64.b64encode(player_2_answer),
                      'questions_list': [x[1] for x in question_list]}
-    dict_player_2 = {'images_set': [base64.b64encode(x).decode("utf-8") for x in images_2],
-                     'opponent_image': base64.b64encode(player_1_answer).decode("utf-8"),
+    dict_player_2 = {'images_set': [base64.b64encode(x) for x in images_2],
+                     'opponent_image': base64.b64encode(player_1_answer),
                      'questions_list': [x[1] for x in question_list]}
     player_1 = rooms_dict[room][0]
     player_2 = rooms_dict[room][1]
@@ -92,6 +92,7 @@ def receive_question(x):
 
 @socketio.on('send_answer')
 def receive_answer(x):
+    print("answer received")
     data = json.loads(x)
     room = players_dict[request.sid]
     game = games_dict[room]

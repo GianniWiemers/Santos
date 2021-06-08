@@ -42,10 +42,12 @@ class Game:
 
     # Handle answer
     def handle_answer(self, requester, answer):
-        if requester == self.waiting:
+        if requester == self.waiting.id:
             self.turn.prev_answer = answer
             self.switch_turns()
+            print("answer is correct")
             return True
+        print("answer is incorrect")
         return False
 
     def switch_turns(self):
@@ -54,7 +56,7 @@ class Game:
         self.turn = player_x
 
     def handle_guess(self, requester, guess):
-        if requester == self.turn:
+        if requester == self.turn.id:
             if self.turn.guess_image(guess):
                 return True
             else:
