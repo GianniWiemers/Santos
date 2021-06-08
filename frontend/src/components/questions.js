@@ -5,7 +5,7 @@ const questions = (props) => {
     var options = []
     for(var i = 0; i < props.questions.length; i++) {
         const x = i;
-        options.push(<option value={x}>{props.questions[i]}</option>)
+        options.push(<option value={x}>{props.questions[i].replace("$", "__")}</option>)
     }
 
     return (

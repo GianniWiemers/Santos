@@ -4,7 +4,7 @@ const answerPage = (props) => {
     return (
         <div className="AnswerPage Centering">
             <div className="ImageOpponent" style={{backgroundImage: 'url(' + props.source + ')'}}></div>
-            <h1>{props.question}</h1>
+            <h1>{props.question.replace("$", props.label)}</h1>
             <div className="Buttons">
                 <button onClick={() => props.answer(0)} className="btn">No</button>
                 <button onClick={() => props.answer(1)} className="btn">Probably no</button>
@@ -13,6 +13,10 @@ const answerPage = (props) => {
             </div>
         </div>
     )
+}
+
+answerPage.defaultProps = {
+    question: ""
 }
 
 export default answerPage

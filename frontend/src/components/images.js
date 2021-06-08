@@ -12,7 +12,7 @@ const images = (props) => {
             extraClass = "Guess"
         }
         const index = i;
-        imgs.push(<div onClick={() => props.onclick(index)} className={"ImageContainer " + extraClass} style={{backgroundImage: 'url(' + props.images[0] + ')'}}></div>)
+        imgs.push(<div onClick={() => props.onclick(index)} className={"ImageContainer " + extraClass} style={{backgroundImage: 'url(' + props.images[i] + ')'}}></div>)
     }
     return (
         <div className="Images Centering">

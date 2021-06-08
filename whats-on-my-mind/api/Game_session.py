@@ -23,7 +23,7 @@ class Game:
         player_1_answer = image_player1[1]
         images_2 = [x[1] for x in record_2]
         player_2_answer = image_player2[1]
-        api.send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, self.turn.id, self.waiting.id)
+        api.send_init_sets(room, images_1, images_2, player_2_answer, player_1_answer, self.turn.id, self.waiting.id)
 
     # Handle a question, method is called whenever a question is sent trough the api
     def handle_question(self, requester, new_question_id, label, boolean_list):

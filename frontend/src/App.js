@@ -16,6 +16,7 @@ const App = () => {
   const [gameState, setgameState] = useState(0);
   const [toSend, settoSend] = useState("wait");
   const [timer, settimer] = useState(100);
+  const [label, setlabel] = useState("");
   const [images, setimages] = useState([]);
   const [questions, setquestions] = useState([]);
   const [selection, setselection] = useState([]);
@@ -111,16 +112,18 @@ const App = () => {
     socket.on('send_init_sets', data => {
       settimer(100);
       data = JSON.parse(data)
-      setimages(data['images_set'])
+      console.log(data['images_set'])
+      setimages(data['images_set'].map(x => URL.createObjectURL(b64toBlob(x))))
+      console.log(images)
       var selectionInit = []
       var guessImageInit = []
       for(var i = 0; i < data.images_set.length; i++) {
-        selectionInit.push(false);
+        selectionInit.push(true);
         guessImageInit.push(false);
       }
       setselection(selectionInit)
       setguessImage(guessImageInit)
-      setoppimg(data.opponent_image)
+      setoppimg(URL.createObjectURL(b64toBlob(data.opponent_image)))
       setquestions(data.questions_list)
       setloadingMessage("Waiting for server...")
     });
@@ -139,7 +142,8 @@ const App = () => {
     socket.on('answer_question', data => {
       settimer(100);
       data = JSON.parse(data)
-      setoppQuestion(questions[data.question_id] + data.label)
+      setoppQuestion(questions[data.question_id])
+      setlabel(data.label)
       setgameState(4)
       settimedState(true)
       settoSend("send_answer")
@@ -156,11 +160,30 @@ const App = () => {
     }
   }, [questions, updateTimer, roundDone, timedState]);
 
+  const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  }
+
   function startGame() {
     console.log("start game")
     socket.emit('initialize_player')
-    setgameState(3)
-    settimedState(true)
+    setgameState(1)
   }
 
   function chooseImage(id) {
@@ -219,7 +242,7 @@ const App = () => {
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <AnswerPage source={oppimg} question={oppQuestion} answer={answerQuestion}/>
+          <AnswerPage source={oppimg} question={oppQuestion} answer={answerQuestion} label={label}/>
         </div>
       );
     case 5: 
