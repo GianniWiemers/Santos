@@ -5,6 +5,7 @@ import QuestionsPage from './components/questionsPage'
 import AnswerPage from './components/answerPage'
 import EliminationPage from './components/eliminationPage'
 import GuessPage from './components/guessPage'
+import EndPage from './components/endPage'
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client'
 
@@ -14,9 +15,11 @@ const App = () => {
   
 
   const [gameState, setgameState] = useState(0);
+  const [oppAnswer, setoppAnswer] = useState("");
   const [toSend, settoSend] = useState("wait");
   const [timer, settimer] = useState(100);
   const [label, setlabel] = useState("");
+  const [result, setresult] = useState("");
   const [images, setimages] = useState([]);
   const [questions, setquestions] = useState([]);
   const [selection, setselection] = useState([]);
@@ -35,6 +38,13 @@ const App = () => {
     } else {
       settimer(timer - 0.1)
     }
+  }
+
+  function getQuestionText() {
+    if(questionId < questions.length) {
+      return questions[questionId]
+    }
+    return "No question selected"
   }
 
   function roundDone() {
@@ -135,6 +145,28 @@ const App = () => {
     });
     socket.on('wait', function() {
       settimer(100);
+      setloadingMessage("Waiting for opponent, please wait...")
+      setgameState(2)
+      settimedState(true)
+      settoSend("wait")
+    });
+    socket.on('select_images', data => {
+      settimer(100);
+      switch(data) {
+        case 3:
+          setoppAnswer("yes")
+          break;
+        case 2:
+          setoppAnswer("probably yes")
+          break;
+        case 1:
+          setoppAnswer("probably no")
+          break;
+        case 0:
+        default:
+          setoppAnswer("no")
+          break;
+      }
       setgameState(5)
       settimedState(true)
       settoSend("wait")
@@ -149,10 +181,14 @@ const App = () => {
       settoSend("send_answer")
     });
     socket.on('win', function() {
-      console.log("Make win screen");
+      setresult("Congratulations, you have won!")
+      settimer(100)
+      setgameState(7)
     });
     socket.on('lose', function() {
-      console.log("Make loss screen");
+      setresult("You lost, better luck next time.")
+      settimer(100)
+      setgameState(7)
     });
     return function cleanUp() {
       clearTimeout(countdown);
@@ -249,7 +285,7 @@ const App = () => {
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage}/>
+          <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage} answer={oppAnswer} question={getQuestionText()} label={textLabel}/>
         </div>
       );
     case 6: 
@@ -257,6 +293,13 @@ const App = () => {
         <div>
           <Header enabled="true" timer={timer}/>
           <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage} toQuestion={() => toGuessPage(false)} guessTheImage={guessTheImage}/>
+        </div>
+      );
+    case 7:
+      return (
+        <div>
+          <Header/>
+          <EndPage text={result}/>
         </div>
       );
     case 0:

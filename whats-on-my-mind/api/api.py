@@ -95,9 +95,10 @@ def receive_answer(x):
     data = json.loads(x)
     room = players_dict[request.sid]
     game = games_dict[room]
+    print(data)
     if game.handle_answer(request.sid, data['answer']):
         emit("ask_question", to=game.turn.id)
-        emit("wait", to=game.waiting.id)
+        emit("select_images", json.dumps(data['answer']), to=game.waiting.id)
 
 
 @socketio.on('send_guess')
