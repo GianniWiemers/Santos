@@ -9,7 +9,7 @@ import EndPage from './components/endPage'
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client'
 
-const socket = io.connect("http://127.0.0.1:5000/")
+const socket = io.connect("https://tender-catfish-3.loca.lt/")
 
 const App = () => {
   
@@ -48,7 +48,6 @@ const App = () => {
   }
 
   function roundDone() {
-    console.log("round done")
     emitToSocket();
     setloadingMessage("Waiting for server...")
     setgameState(1);
@@ -87,12 +86,10 @@ const App = () => {
     switch(toSend) {
       case "send_question":
         const questionJSON = JSON.stringify({question_id: questionId, label: textLabel, boolean_list: selection})
-        socket.emit('send_question', questionJSON);
+        socket.emit('send_question', questionJSON)
         break;
       case "send_answer":
         const answerJSON = JSON.stringify({answer: answer})
-          console.log(answer)
-          console.log("answer sent")
         socket.emit('send_answer', answerJSON)
         break;
       case "send_guess":
@@ -103,7 +100,6 @@ const App = () => {
             break;
           }
         }
-        console.log(index)
         const guessJSON = JSON.stringify({guess: index})
         socket.emit('send_guess', guessJSON)
         break;
@@ -116,15 +112,13 @@ const App = () => {
     var round;
     var countdown;
     if(timedState) {
-      countdown = setTimeout(updateTimer, 10)
-      round = setTimeout(roundDone, 1000)
+      countdown = setTimeout(updateTimer, 20)
+      round = setTimeout(roundDone, 20000)
     }
     socket.on('send_init_sets', data => {
       settimer(100);
       data = JSON.parse(data)
-      console.log(data['images_set'])
       setimages(data['images_set'].map(x => URL.createObjectURL(b64toBlob(x))))
-      console.log(images)
       var selectionInit = []
       var guessImageInit = []
       for(var i = 0; i < data.images_set.length; i++) {
@@ -152,17 +146,17 @@ const App = () => {
     });
     socket.on('select_images', data => {
       settimer(100);
-      switch(data) {
-        case 3:
+      switch(data.toString()) {
+        case "3":
           setoppAnswer("yes")
           break;
-        case 2:
+        case "2":
           setoppAnswer("probably yes")
           break;
-        case 1:
+        case "1":
           setoppAnswer("probably no")
           break;
-        case 0:
+        case "0":
         default:
           setoppAnswer("no")
           break;
@@ -217,7 +211,6 @@ const App = () => {
   }
 
   function startGame() {
-    console.log("start game")
     socket.emit('initialize_player')
     setgameState(1)
   }
