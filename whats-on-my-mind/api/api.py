@@ -5,7 +5,7 @@ from flask import Flask, request, Response, jsonify
 from flask_session import Session
 from flask_socketio import SocketIO, send, join_room, leave_room, emit
 from flask_cors import CORS
-from Game_session import Game
+import Game_session
 import database as db
 
 app = Flask(__name__)
@@ -53,7 +53,7 @@ def initialize_player():
     elif player_counter == 1:
         player_counter = 0
         rooms_dict[room_counter].append(player_id)
-        games_dict[room_counter] = Game(rooms_dict[room_counter][0], rooms_dict[room_counter][1], room_counter)
+        games_dict[room_counter] = Game_session.Game(rooms_dict[room_counter][0], rooms_dict[room_counter][1], room_counter)
         room_counter += 1
     print("player_counter = " + str(player_counter))
     print("room_counter = " + str(room_counter))

@@ -27,17 +27,16 @@ class Game:
 
     # Handle a question, method is called whenever a question is sent trough the api
     def handle_question(self, requester, new_question_id, label, boolean_list):
-        print("handle_question")
         if requester == self.turn.id:
             self.turn.update_selection_list(boolean_list)
-            if self.turn.selection_list and self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
+            if self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
                 for i in range(len(self.turn.image_list)):
-                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and self.turn.prev_label.strip() is not '':
+                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and self.turn.prev_label.strip() != '':
                         # Write annotation to db
                         db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
                                                           self.turn.prev_question_id, self.turn.prev_label))
-            self.waiting.prev_question_id = new_question_id
-            self.waiting.prev_label = label
+            self.turn.prev_question_id = new_question_id
+            self.turn.prev_label = label
             return True
         else:
             return False
