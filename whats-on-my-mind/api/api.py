@@ -30,9 +30,6 @@ connection = db.create_connection("images.db")
 question_list = db.get_questions(connection)
 connection.close()
 
-if __name__ == '__main__':
-    app.run()
-
 @socketio.on('connect')
 def test_connect():
     print("Connected")
