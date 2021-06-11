@@ -23,26 +23,36 @@ class Game:
         player_1_answer = image_player1[1]
         images_2 = [x[1] for x in record_2]
         player_2_answer = image_player2[1]
-        api.send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, self.turn.id, self.waiting.id)
+        api.send_init_sets(room, images_1, images_2, player_2_answer, player_1_answer, self.turn.id, self.waiting.id)
 
     # Handle a question, method is called whenever a question is sent trough the api
     def handle_question(self, requester, new_question_id, label, boolean_list):
+        prev_selection_list = self.turn.selection_list
         if requester == self.turn.id:
             self.turn.update_selection_list(boolean_list)
-            if not self.turn.selection_list:
-                for i in range(len(requester.image_id_list)):
-                    if requester.selection_list[i]:
+            if self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
+                for i in range(len(self.turn.image_list)):
+                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and \
+                            self.turn.prev_label.strip() != '':
                         # Write annotation to db
-                        db.create_annotation(connection, (self.session_id, requester.image_id_list[i][0], requester.prev_question_id, requester.prev_label))
-            self.waiting.prev_question_id = new_question_id
-            self.waiting.prev_label = label
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
+            if self.turn.prev_answer == 0 or self.turn.prev_answer == 1:
+                for i in range(len(self.turn.image_list)):
+                    if self.turn.selection_list[i] == False and prev_selection_list[i] == True and \
+                            self.turn.prev_question_id is not None and self.turn.prev_label.strip() != '':
+                        # Write annotation to db
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
+            self.turn.prev_question_id = new_question_id
+            self.turn.prev_label = label
             return True
         else:
             return False
 
     # Handle answer
     def handle_answer(self, requester, answer):
-        if requester == self.waiting:
+        if requester == self.waiting.id:
             self.turn.prev_answer = answer
             self.switch_turns()
             return True
@@ -54,12 +64,13 @@ class Game:
         self.turn = player_x
 
     def handle_guess(self, requester, guess):
-        if requester == self.turn:
+        if requester == self.turn.id:
             if self.turn.guess_image(guess):
                 return True
             else:
                 self.switch_turns()
                 return False
+
 
 # Class that represents a player
 class Player:

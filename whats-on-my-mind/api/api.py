@@ -5,7 +5,7 @@ from flask import Flask, request, Response, jsonify
 from flask_session import Session
 from flask_socketio import SocketIO, send, join_room, leave_room, emit
 from flask_cors import CORS
-from Game_session import Game
+import Game_session
 import database as db
 
 app = Flask(__name__)
@@ -30,7 +30,6 @@ connection = db.create_connection("images.db")
 question_list = db.get_questions(connection)
 connection.close()
 
-
 @socketio.on('connect')
 def test_connect():
     print("Connected")
@@ -54,7 +53,7 @@ def initialize_player():
     elif player_counter == 1:
         player_counter = 0
         rooms_dict[room_counter].append(player_id)
-        games_dict[room_counter] = Game(rooms_dict[room_counter][0], rooms_dict[room_counter][1], room_counter)
+        games_dict[room_counter] = Game_session.Game(rooms_dict[room_counter][0], rooms_dict[room_counter][1], room_counter)
         room_counter += 1
     print("player_counter = " + str(player_counter))
     print("room_counter = " + str(room_counter))
@@ -81,34 +80,35 @@ def send_init_sets(room, images_1, images_2, player_1_answer, player_2_answer, p
 
 # receive question and label
 @socketio.on('send_question')
-def receive_question():
+def receive_question(x):
+    data = json.loads(x)
     room = players_dict[request.sid]
-    data = request.json #possible bug
     game = games_dict[room]
-    if game.handle_question(request.sid, question_list[data['question_id']][0], data['label'], data['boolean_list']):
+    if game.handle_question(request.sid, question_list[int(data['question_id'])][0], data['label'], data['boolean_list']):
         question_json = {"question_id": data['question_id'], "label": data['label']}
-        emit("wait", to=game.turn)
-        emit("answer_question", json.dumps(question_json, indent=4), to=game.waiting) #check dumps
+        emit("wait", to=game.turn.id)
+        emit("answer_question", json.dumps(question_json, indent=4), to=game.waiting.id) #check dumps
 
 
 @socketio.on('send_answer')
-def receive_answer():
+def receive_answer(x):
+    data = json.loads(x)
     room = players_dict[request.sid]
-    data = request.json
     game = games_dict[room]
+    print(data)
     if game.handle_answer(request.sid, data['answer']):
         emit("ask_question", to=game.turn.id)
-        emit("wait", to=game.waiting.id)
+        emit("select_images", json.dumps(data['answer']), to=game.waiting.id)
 
 
 @socketio.on('send_guess')
-def receive_guess():
+def receive_guess(x):
+    data = json.loads(x)
     room = players_dict[request.sid]
-    data = request.json
     game = games_dict[room]
     if game.handle_guess(request.sid, data['guess']):
-        emit("win", to=game.turn)
-        emit("lose", to=game.waiting)
+        emit("win", to=game.turn.id)
+        emit("lose", to=game.waiting.id)
     else:
         emit("ask_question", to=game.turn.id)
         emit("wait", to=game.waiting.id)

@@ -5,17 +5,21 @@ import QuestionsPage from './components/questionsPage'
 import AnswerPage from './components/answerPage'
 import EliminationPage from './components/eliminationPage'
 import GuessPage from './components/guessPage'
+import EndPage from './components/endPage'
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client'
 
-const socket = io.connect("http://127.0.0.1:5000/")
+const socket = io.connect("https://tender-catfish-3.loca.lt/")
 
 const App = () => {
   
 
   const [gameState, setgameState] = useState(0);
+  const [oppAnswer, setoppAnswer] = useState("");
   const [toSend, settoSend] = useState("wait");
   const [timer, settimer] = useState(100);
+  const [label, setlabel] = useState("");
+  const [result, setresult] = useState("");
   const [images, setimages] = useState([]);
   const [questions, setquestions] = useState([]);
   const [selection, setselection] = useState([]);
@@ -30,14 +34,25 @@ const App = () => {
 
   function updateTimer() {
     if(timer <= 0) {
-      emitToSocket();
-      setloadingMessage("Waiting for server...")
-      setgameState(1);
-      settimer(100);
-      settimedState(false);
+      roundDone()
     } else {
       settimer(timer - 0.1)
     }
+  }
+
+  function getQuestionText() {
+    if(questionId < questions.length) {
+      return questions[questionId]
+    }
+    return "No question selected"
+  }
+
+  function roundDone() {
+    emitToSocket();
+    setloadingMessage("Waiting for server...")
+    setgameState(1);
+    settimer(100);
+    settimedState(false);
   }
 
   function askQuestion(question, textArea) {
@@ -71,7 +86,7 @@ const App = () => {
     switch(toSend) {
       case "send_question":
         const questionJSON = JSON.stringify({question_id: questionId, label: textLabel, boolean_list: selection})
-        socket.emit('send_question', questionJSON);
+        socket.emit('send_question', questionJSON)
         break;
       case "send_answer":
         const answerJSON = JSON.stringify({answer: answer})
@@ -85,7 +100,6 @@ const App = () => {
             break;
           }
         }
-        console.log(index)
         const guessJSON = JSON.stringify({guess: index})
         socket.emit('send_guess', guessJSON)
         break;
@@ -95,54 +109,108 @@ const App = () => {
   }
 
   useEffect(() => {
+    var round;
     var countdown;
     if(timedState) {
-      countdown = setTimeout(updateTimer, 10)
+      countdown = setTimeout(updateTimer, 20)
+      round = setTimeout(roundDone, 20000)
     }
     socket.on('send_init_sets', data => {
+      settimer(100);
       data = JSON.parse(data)
-      setimages(data['images_set'])
+      setimages(data['images_set'].map(x => URL.createObjectURL(b64toBlob(x))))
       var selectionInit = []
       var guessImageInit = []
       for(var i = 0; i < data.images_set.length; i++) {
-        selectionInit.push(false);
+        selectionInit.push(true);
         guessImageInit.push(false);
       }
       setselection(selectionInit)
       setguessImage(guessImageInit)
-      setoppimg(data.opponent_image)
+      setoppimg(URL.createObjectURL(b64toBlob(data.opponent_image)))
       setquestions(data.questions_list)
       setloadingMessage("Waiting for server...")
     });
     socket.on('ask_question', function() {
+      settimer(100);
       setgameState(3)
       settimedState(true)
       settoSend("send_question")
     });
     socket.on('wait', function() {
+      settimer(100);
+      setloadingMessage("Waiting for opponent, please wait...")
+      setgameState(2)
+      settimedState(true)
+      settoSend("wait")
+    });
+    socket.on('select_images', data => {
+      settimer(100);
+      switch(data.toString()) {
+        case "3":
+          setoppAnswer("yes")
+          break;
+        case "2":
+          setoppAnswer("probably yes")
+          break;
+        case "1":
+          setoppAnswer("probably no")
+          break;
+        case "0":
+        default:
+          setoppAnswer("no")
+          break;
+      }
       setgameState(5)
       settimedState(true)
       settoSend("wait")
     });
     socket.on('answer_question', data => {
-      setoppQuestion(questions[data.question_id] + data.label)
+      settimer(100);
+      data = JSON.parse(data)
+      setoppQuestion(questions[data.question_id])
+      setlabel(data.label)
       setgameState(4)
       settimedState(true)
       settoSend("send_answer")
     });
     socket.on('win', function() {
-      console.log("Make win screen");
+      setresult("Congratulations, you have won!")
+      settimer(100)
+      setgameState(7)
     });
     socket.on('lose', function() {
-      console.log("Make loss screen");
+      setresult("You lost, better luck next time.")
+      settimer(100)
+      setgameState(7)
     });
     return function cleanUp() {
       clearTimeout(countdown);
+      clearTimeout(round);
     }
-  }, [questions, updateTimer, timedState]);
+  }, [questions, updateTimer, roundDone, timedState]);
+
+  const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  }
 
   function startGame() {
-    console.log("start game")
     socket.emit('initialize_player')
     setgameState(1)
   }
@@ -203,14 +271,14 @@ const App = () => {
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <AnswerPage source={oppimg} question={oppQuestion} answer={answerQuestion}/>
+          <AnswerPage source={oppimg} question={oppQuestion} answer={answerQuestion} label={label}/>
         </div>
       );
     case 5: 
       return (
         <div>
           <Header enabled="true" timer={timer}/>
-          <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage}/>
+          <EliminationPage images={images} selection={selection} guessImage={guessImage} onclick={selectImage} answer={oppAnswer} question={getQuestionText()} label={textLabel}/>
         </div>
       );
     case 6: 
@@ -218,6 +286,13 @@ const App = () => {
         <div>
           <Header enabled="true" timer={timer}/>
           <GuessPage images={images} selection={selection} guessImage={guessImage} onclick={chooseImage} toQuestion={() => toGuessPage(false)} guessTheImage={guessTheImage}/>
+        </div>
+      );
+    case 7:
+      return (
+        <div>
+          <Header/>
+          <EndPage text={result}/>
         </div>
       );
     case 0:
