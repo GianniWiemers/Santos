@@ -27,11 +27,20 @@ class Game:
 
     # Handle a question, method is called whenever a question is sent trough the api
     def handle_question(self, requester, new_question_id, label, boolean_list):
+        prev_selection_list = self.turn.selection_list
         if requester == self.turn.id:
             self.turn.update_selection_list(boolean_list)
             if self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
                 for i in range(len(self.turn.image_list)):
-                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and self.turn.prev_label.strip() != '':
+                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and \
+                            self.turn.prev_label.strip() != '':
+                        # Write annotation to db
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
+            if self.turn.prev_answer == 0 or self.turn.prev_answer == 1:
+                for i in range(len(self.turn.image_list)):
+                    if self.turn.selection_list[i] == False and prev_selection_list[i] == True and \
+                            self.turn.prev_question_id is not None and self.turn.prev_label.strip() != '':
                         # Write annotation to db
                         db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
                                                           self.turn.prev_question_id, self.turn.prev_label))
@@ -61,6 +70,7 @@ class Game:
             else:
                 self.switch_turns()
                 return False
+
 
 # Class that represents a player
 class Player:
