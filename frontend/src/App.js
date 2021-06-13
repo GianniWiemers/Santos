@@ -9,7 +9,7 @@ import EndPage from './components/endPage'
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client'
 
-const socket = io.connect("https://tender-catfish-3.loca.lt/")
+const socket = io.connect("http://127.0.0.1:5000/")
 
 const App = () => {
   
