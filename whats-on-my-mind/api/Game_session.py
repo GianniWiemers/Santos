@@ -63,8 +63,24 @@ class Game:
         self.waiting = self.turn
         self.turn = player_x
 
-    def handle_guess(self, requester, guess):
+    def handle_guess(self, requester, guess, boolean_list):
         if requester == self.turn.id:
+            prev_selection_list = self.turn.selection_list
+            self.turn.update_selection_list(boolean_list)
+            if self.turn.prev_answer == 2 or self.turn.prev_answer == 3:
+                for i in range(len(self.turn.image_list)):
+                    if self.turn.selection_list[i] and self.turn.prev_question_id is not None and \
+                            self.turn.prev_label.strip() != '':
+                        # Write annotation to db
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
+            if self.turn.prev_answer == 0 or self.turn.prev_answer == 1:
+                for i in range(len(self.turn.image_list)):
+                    if self.turn.selection_list[i] == False and prev_selection_list[i] == True and \
+                            self.turn.prev_question_id is not None and self.turn.prev_label.strip() != '':
+                        # Write annotation to db
+                        db.create_annotation(connection, (self.session_id, self.turn.image_list[i][0],
+                                                          self.turn.prev_question_id, self.turn.prev_label))
             if self.turn.guess_image(guess):
                 return True
             else:

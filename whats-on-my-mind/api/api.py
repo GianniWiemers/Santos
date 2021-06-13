@@ -106,7 +106,7 @@ def receive_guess(x):
     data = json.loads(x)
     room = players_dict[request.sid]
     game = games_dict[room]
-    if game.handle_guess(request.sid, data['guess']):
+    if game.handle_guess(request.sid, data['guess'], data['boolean_list']):
         emit("win", to=game.turn.id)
         emit("lose", to=game.waiting.id)
     else:
